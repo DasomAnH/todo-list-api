@@ -3,8 +3,8 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const hostname = '127.0.0.1';
 const port = 3000;
-
 const app = express();
+
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 
@@ -12,8 +12,17 @@ app.use(express.static('public'));
 
 const server = http.createServer(app);
 
+const es6Renderer = require('express-es6-template-engine');
+app.engine('html', es6Renderer);
+app.set('views', 'templates');
+app.set('view engine', 'html');
+
 app.get('/', (req, res) => {
-  res.send(`<h1>hello world!</h1>`);
+  res.render('home', {
+    locals: {
+      todoList: todoList,
+    },
+  });
 });
 
 const todoList = [
@@ -35,33 +44,34 @@ const todoList = [
   },
 ];
 
+app.post('/todos', (req, res) => {
+  res.send('POST');
+});
+
 // GET /api/todos
-app.get('/api/todos', (req, res) => {
+app.get('/todos', (req, res) => {
   res.json(todoList);
 });
 
 // GET /api/todos/:id
-app.get('/api/todos/:id', (req, res) => {
+app.get('/todos/:id', (req, res) => {
   const { id } = req.params;
-
   const todo = todoList.find(element => {
     if (element.id == id) {
       return true;
     }
     return false;
   });
+
   if (!todo) {
-    res
-      .status(404) // set status to 404 (not found)
-      // send back an error
-      .send(`<h1>No found : ${id}</h1>`);
-    // if we did find a friend
+    res.status(404).send(`<h1>No found : ${id}</home>`);
   } else {
-    // use the details to send back a page with their info
-    res.send(`
-      <h1>${todo.id}</h1>
-      <h3>${todo.todo}</h3>
-    `);
+    res.render('todoList', {
+      locals: {
+        id: id,
+        todo: todo,
+      },
+    });
   }
 });
 
